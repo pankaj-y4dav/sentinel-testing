@@ -35,21 +35,3 @@ resource "aws_instance" "test-server-encrypted" {
     Type = "encrypted-root-volume"
   }
 }
-
-# EC2 Instance with unencrypted root EBS volume
-resource "aws_instance" "test-server-unencrypted" {
-  ami           = var.ami
-  instance_type = var.instance_type
-
-  root_block_device {
-    volume_type = "gp3"
-    volume_size = 20
-    encrypted   = false
-    delete_on_termination = true
-  }
-
-  tags = {
-    Name = local.instance_name_unencrypted
-    Type = "unencrypted-root-volume"
-  }
-}
