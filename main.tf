@@ -10,38 +10,12 @@ terraform {
 }
 
 locals {
-  db_name_encrypted = "${terraform.workspace}-db-encrypted"
   db_name_unencrypted = "${terraform.workspace}-db-unencrypted"
 }
 
 provider "aws" {
   region = var.region
 }
-
-# RDS Instance with encrypted storage
-# resource "aws_db_instance" "test-db-encrypted" {
-#   identifier = local.db_name_encrypted
-  
-#   engine         = var.db_engine
-#   engine_version = var.db_engine_version
-#   instance_class = var.db_instance_class
-  
-#   allocated_storage = var.db_allocated_storage
-#   storage_type      = "gp3"
-#   storage_encrypted = true
-  
-#   db_name  = var.db_name
-#   username = var.db_username
-#   password = var.db_password
-  
-#   skip_final_snapshot = true
-#   deletion_protection = false
-  
-#   tags = {
-#     Name = local.db_name_encrypted
-#     Type = "encrypted-storage"
-#   }
-# }
 
 # RDS Instance with unencrypted storage
 resource "aws_db_instance" "test-db-unencrypted" {
