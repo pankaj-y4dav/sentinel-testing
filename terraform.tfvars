@@ -1,3 +1,10 @@
 region        = "us-east-1"
 ami           = "ami-020cba7c55df1f615"
 instance_type = "t3.medium"
+db_engine = "mysql"
+db_engine_version = "8.0"
+db_instance_class = "db.t3.micro"
+db_allocated_storage = 20
+db_name = "testdb"
+db_username = "admin"
+db_password = "TestPassword123!"
