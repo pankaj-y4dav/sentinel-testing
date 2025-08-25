@@ -170,7 +170,7 @@ resource "aws_rds_cluster" "test-cluster-encrypted" {
 # RDS Cluster Instance for encrypted cluster
 resource "aws_rds_cluster_instance" "test-cluster-instance-encrypted" {
   identifier         = "${local.cluster_name_encrypted}-instance-1"
-  cluster_identifier = aws_rds_cluster.test-cluster-encrypted.id
+  cluster_identifier = aws_rds_cluster.test-cluster-encrypted.cluster_identifier
   
   instance_class = var.cluster_instance_class
   engine         = aws_rds_cluster.test-cluster-encrypted.engine
@@ -185,8 +185,8 @@ resource "aws_rds_cluster_instance" "test-cluster-instance-encrypted" {
 # RDS Cluster Instance for unencrypted cluster
 # resource "aws_rds_cluster_instance" "test-cluster-instance-unencrypted" {
 #   identifier         = "${local.cluster_name_unencrypted}-instance-1"
-#   cluster_identifier = aws_rds_cluster.test-cluster-unencrypted.id
-  
+#   cluster_identifier = aws_rds_cluster.test-cluster-unencrypted.cluster_identifier
+
 #   instance_class = var.cluster_instance_class
 #   engine         = aws_rds_cluster.test-cluster-unencrypted.engine
 #   engine_version = aws_rds_cluster.test-cluster-unencrypted.engine_version
