@@ -16,6 +16,7 @@ variable "instance_type" {
   default     = "t2.micro"
 }
 
+# RDS Instance variables
 variable "db_engine" {
   description = "The database engine"
   type        = string
@@ -56,4 +57,29 @@ variable "db_password" {
   description = "The master password for the database"
   type        = string
   sensitive   = true
+}
+
+# RDS Cluster variables
+variable "cluster_engine" {
+  description = "The Aurora cluster engine"
+  type        = string
+  default     = "aurora-mysql"
+}
+
+variable "cluster_engine_version" {
+  description = "The Aurora cluster engine version"
+  type        = string
+  default     = "8.0.mysql_aurora.3.02.0"
+}
+
+variable "cluster_instance_class" {
+  description = "The Aurora cluster instance class"
+  type        = string
+  default     = "db.r5.large"
+}
+
+variable "kms_key_id" {
+  description = "The KMS key ID for encryption (optional)"
+  type        = string
+  default     = null
 }
