@@ -30,30 +30,9 @@ provider "aws" {
 
 
 # ElastiCache Redis replication group with encryption at rest enabled
-resource "aws_elasticache_replication_group" "redis_rep_encrypted" {
-  replication_group_id    = local.redis_replication_group_encrypted
-  description             = "Redis replication group with encryption at rest enabled"
-  engine                  = "redis"
-  engine_version          = "6.2"
-  node_type               = "cache.t3.micro"
-  num_cache_clusters      = 2
-  parameter_group_name    = "default.redis6.x"
-  port                    = 6379
-  automatic_failover_enabled = true
-  
-  # Enable encryption at rest
-  at_rest_encryption_enabled = true
-  
-  tags = {
-    Name = local.redis_replication_group_encrypted
-    Type = "encrypted-redis-replication-group"
-  }
-}
-
-# ElastiCache Redis replication group with encryption at rest disabled
-# resource "aws_elasticache_replication_group" "redis_rep_unencrypted" {
-#   replication_group_id    = local.redis_replication_group_unencrypted
-#   description             = "Redis replication group with encryption at rest disabled"
+# resource "aws_elasticache_replication_group" "redis_rep_encrypted" {
+#   replication_group_id    = local.redis_replication_group_encrypted
+#   description             = "Redis replication group with encryption at rest enabled"
 #   engine                  = "redis"
 #   engine_version          = "6.2"
 #   node_type               = "cache.t3.micro"
@@ -62,14 +41,35 @@ resource "aws_elasticache_replication_group" "redis_rep_encrypted" {
 #   port                    = 6379
 #   automatic_failover_enabled = true
   
-#   # Disable encryption at rest (default behavior, explicitly set for clarity)
-#   at_rest_encryption_enabled = false
+#   # Enable encryption at rest
+#   at_rest_encryption_enabled = true
   
 #   tags = {
-#     Name = local.redis_replication_group_unencrypted
-#     Type = "unencrypted-redis-replication-group"
+#     Name = local.redis_replication_group_encrypted
+#     Type = "encrypted-redis-replication-group"
 #   }
 # }
+
+# ElastiCache Redis replication group with encryption at rest disabled
+resource "aws_elasticache_replication_group" "redis_rep_unencrypted" {
+  replication_group_id    = local.redis_replication_group_unencrypted
+  description             = "Redis replication group with encryption at rest disabled"
+  engine                  = "redis"
+  engine_version          = "6.2"
+  node_type               = "cache.t3.micro"
+  num_cache_clusters      = 2
+  parameter_group_name    = "default.redis6.x"
+  port                    = 6379
+  automatic_failover_enabled = true
+  
+  # Disable encryption at rest (default behavior, explicitly set for clarity)
+  at_rest_encryption_enabled = false
+  
+  tags = {
+    Name = local.redis_replication_group_unencrypted
+    Type = "unencrypted-redis-replication-group"
+  }
+}
 
 # =============================================================================
 # COMMENTED OUT RESOURCES
