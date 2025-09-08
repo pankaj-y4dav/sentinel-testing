@@ -18,8 +18,8 @@ locals {
   cluster_name_unencrypted = "${terraform.workspace}-cluster-unencrypted"
   global_cluster_name_encrypted = "${terraform.workspace}-global-encrypted"
   global_cluster_name_unencrypted = "${terraform.workspace}-global-unencrypted"
-  elasticsearch_domain_encrypted = "${terraform.workspace}-es-encrypted"
-  elasticsearch_domain_unencrypted = "${terraform.workspace}-es-unencrypted"
+  elasticsearch_domain_encrypted = "test-es-encrypted"
+  elasticsearch_domain_unencrypted = "test-es-unencrypted"
 }
 
 provider "aws" {
