@@ -18,10 +18,62 @@ locals {
   cluster_name_unencrypted = "${terraform.workspace}-cluster-unencrypted"
   global_cluster_name_encrypted = "${terraform.workspace}-global-encrypted"
   global_cluster_name_unencrypted = "${terraform.workspace}-global-unencrypted"
+  elasticsearch_domain_encrypted = "test-es-encrypted"
+  elasticsearch_domain_unencrypted = "test-es-unencrypted"
 }
 
 provider "aws" {
   region = var.region
+}
+
+# Elasticsearch domain with encryption at rest enabled
+resource "aws_elasticsearch_domain" "test-es-encrypted" {
+  domain_name           = local.elasticsearch_domain_encrypted
+  elasticsearch_version = "7.10"
+
+  cluster_config {
+    instance_type = "t3.small.elasticsearch"
+    instance_count = 1
+  }
+
+  ebs_options {
+    ebs_enabled = true
+    volume_size = 10
+  }
+
+  encrypt_at_rest {
+    enabled = true
+  }
+
+  tags = {
+    Name = local.elasticsearch_domain_encrypted
+    Type = "encrypted-elasticsearch"
+  }
+}
+
+# Elasticsearch domain with encryption at rest disabled
+resource "aws_elasticsearch_domain" "test-es-unencrypted" {
+  domain_name           = local.elasticsearch_domain_unencrypted
+  elasticsearch_version = "7.10"
+
+  cluster_config {
+    instance_type = "t3.small.elasticsearch"
+    instance_count = 1
+  }
+
+  ebs_options {
+    ebs_enabled = true
+    volume_size = 10
+  }
+
+  encrypt_at_rest {
+    enabled = false
+  }
+
+  tags = {
+    Name = local.elasticsearch_domain_unencrypted
+    Type = "unencrypted-elasticsearch"
+  }
 }
 
 # EC2 Instance with encrypted root EBS volume
@@ -42,7 +94,7 @@ resource "aws_instance" "test-server-encrypted" {
   }
 }
 
-# # EC2 Instance with unencrypted root EBS volume
+# EC2 Instance with unencrypted root EBS volume
 resource "aws_instance" "test-server-unencrypted" {
   ami           = var.ami
   instance_type = var.instance_type
