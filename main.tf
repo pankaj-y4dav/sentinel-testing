@@ -353,7 +353,7 @@ resource "aws_s3_bucket" "test_bucket_encrypted" {
 
 # Server-side encryption configuration as a separate resource (preferred)
 resource "aws_s3_bucket_server_side_encryption_configuration" "test_bucket_encrypted" {
-  bucket = aws_s3_bucket.test_bucket_encrypted.id
+  bucket = local.s3_bucket_encrypted
 
   rule {
     apply_server_side_encryption_by_default {
