@@ -10,22 +10,72 @@ terraform {
 }
 
 locals {
-  instance_name_encrypted = "${terraform.workspace}-instance-encrypted"
-  instance_name_unencrypted = "${terraform.workspace}-instance-unencrypted"
-  db_name_encrypted = "${terraform.workspace}-db-encrypted"
-  db_name_unencrypted = "${terraform.workspace}-db-unencrypted"
-  cluster_name_encrypted = "${terraform.workspace}-cluster-encrypted"
-  cluster_name_unencrypted = "${terraform.workspace}-cluster-unencrypted"
-  global_cluster_name_encrypted = "${terraform.workspace}-global-encrypted"
-  global_cluster_name_unencrypted = "${terraform.workspace}-global-unencrypted"
-  elasticsearch_domain_encrypted = "test-es-encrypted"
-  elasticsearch_domain_unencrypted = "test-es-unencrypted"
+  # instance_name_encrypted = "test-instance-encrypted"
+  # instance_name_unencrypted = "test-instance-unencrypted"
+  # db_name_encrypted = "test-db-encrypted"
+  # db_name_unencrypted = "test-db-unencrypted"
+  # cluster_name_encrypted = "test-cluster-encrypted"
+  # cluster_name_unencrypted = "test-cluster-unencrypted"
+  # global_cluster_name_encrypted = "test-global-encrypted"
+  # global_cluster_name_unencrypted = "test-global-unencrypted"
+  # elasticsearch_domain_encrypted = "test-es-encrypted"
+  # elasticsearch_domain_unencrypted = "test-es-unencrypted"
+  redis_replication_group_encrypted = "test-redis-replication-encrypted"
+  redis_replication_group_unencrypted = "test-redis-replication-unencrypted"
 }
 
 provider "aws" {
   region = var.region
 }
 
+
+# ElastiCache Redis replication group with encryption at rest enabled
+resource "aws_elasticache_replication_group" "redis_rep_encrypted" {
+  replication_group_id    = local.redis_replication_group_encrypted
+  description             = "Redis replication group with encryption at rest enabled"
+  engine                  = "redis"
+  engine_version          = "6.2"
+  node_type               = "cache.t3.micro"
+  num_cache_clusters      = 2
+  parameter_group_name    = "default.redis6.x"
+  port                    = 6379
+  automatic_failover_enabled = true
+  
+  # Enable encryption at rest
+  at_rest_encryption_enabled = true
+  
+  tags = {
+    Name = local.redis_replication_group_encrypted
+    Type = "encrypted-redis-replication-group"
+  }
+}
+
+# ElastiCache Redis replication group with encryption at rest disabled
+# resource "aws_elasticache_replication_group" "redis_rep_unencrypted" {
+#   replication_group_id    = local.redis_replication_group_unencrypted
+#   description             = "Redis replication group with encryption at rest disabled"
+#   engine                  = "redis"
+#   engine_version          = "6.2"
+#   node_type               = "cache.t3.micro"
+#   num_cache_clusters      = 2
+#   parameter_group_name    = "default.redis6.x"
+#   port                    = 6379
+#   automatic_failover_enabled = true
+  
+#   # Disable encryption at rest (default behavior, explicitly set for clarity)
+#   at_rest_encryption_enabled = false
+  
+#   tags = {
+#     Name = local.redis_replication_group_unencrypted
+#     Type = "unencrypted-redis-replication-group"
+#   }
+# }
+
+# =============================================================================
+# COMMENTED OUT RESOURCES
+# =============================================================================
+
+/*
 # Elasticsearch domain with encryption at rest enabled
 resource "aws_elasticsearch_domain" "test-es-encrypted" {
   domain_name           = local.elasticsearch_domain_encrypted
@@ -282,3 +332,4 @@ resource "aws_rds_global_cluster" "test-global-cluster-unencrypted" {
     Type = "unencrypted-global-cluster"
   }
 }
+*/
