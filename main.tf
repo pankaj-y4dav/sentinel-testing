@@ -21,8 +21,6 @@ locals {
   elasticsearch_domain_unencrypted = "test-es-unencrypted"
   redis_replication_group_encrypted = "test-redis-replication-encrypted"
   redis_replication_group_unencrypted = "test-redis-replication-unencrypted"
-
-  # New locals for S3 testing
   s3_bucket_encrypted   = "test-s3-encrypted"
   s3_bucket_unencrypted = "test-s3-unencrypted"
 }
