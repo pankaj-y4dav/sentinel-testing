@@ -21,6 +21,8 @@ locals {
   elasticsearch_domain_unencrypted = "test-es-unencrypted"
   redis_replication_group_encrypted = "test-redis-replication-encrypted"
   redis_replication_group_unencrypted = "test-redis-replication-unencrypted"
+  s3_bucket_encrypted   = "test-s3-encrypted"
+  s3_bucket_unencrypted = "test-s3-unencrypted"
 }
 
 provider "aws" {
@@ -324,5 +326,36 @@ resource "aws_elasticache_replication_group" "redis_rep_unencrypted" {
   tags = {
     Name = local.redis_replication_group_unencrypted
     Type = "unencrypted-redis-replication-group"
+  }
+}
+
+# Encrypted bucket - bucket only (encryption managed via dedicated resource)
+resource "aws_s3_bucket" "test_bucket_encrypted" {
+  bucket = local.s3_bucket_encrypted
+
+  tags = {
+    Name = local.s3_bucket_encrypted
+    Type = "encrypted-s3"
+  }
+}
+
+# Server-side encryption configuration as a separate resource (preferred)
+resource "aws_s3_bucket_server_side_encryption_configuration" "test_bucket_encrypted" {
+  bucket = local.s3_bucket_encrypted
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+# Unencrypted bucket - intentionally missing server_side_encryption_configuration
+resource "aws_s3_bucket" "test_bucket_unencrypted" {
+  bucket = local.s3_bucket_unencrypted
+
+  tags = {
+    Name = local.s3_bucket_unencrypted
+    Type = "unencrypted-s3"
   }
 }
