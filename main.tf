@@ -1,33 +1,46 @@
-terraform { 
-  cloud { 
-    organization = "greed-island" 
+terraform {
+  cloud {
+    organization = "greed-island"
 
-    workspaces { 
-      name = "sentinel-x-sentinel" 
-    } 
-  } 
+    workspaces {
+      name = "sentinel-x-sentinel"
+    }
+  }
 }
 
 locals {
-  instance_name_encrypted = "test-instance-encrypted"
-  instance_name_unencrypted = "test-instance-unencrypted"
-  db_name_encrypted = "test-db-encrypted"
-  db_name_unencrypted = "test-db-unencrypted"
-  cluster_name_encrypted = "test-cluster-encrypted"
-  cluster_name_unencrypted = "test-cluster-unencrypted"
-  global_cluster_name_encrypted = "test-global-encrypted"
-  global_cluster_name_unencrypted = "test-global-unencrypted"
-  elasticsearch_domain_encrypted = "test-es-encrypted"
-  elasticsearch_domain_unencrypted = "test-es-unencrypted"
-  redis_replication_group_encrypted = "test-redis-replication-encrypted"
+  instance_name_encrypted             = "test-instance-encrypted"
+  instance_name_unencrypted           = "test-instance-unencrypted"
+  db_name_encrypted                   = "test-db-encrypted"
+  db_name_unencrypted                 = "test-db-unencrypted"
+  cluster_name_encrypted              = "test-cluster-encrypted"
+  cluster_name_unencrypted            = "test-cluster-unencrypted"
+  global_cluster_name_encrypted       = "test-global-encrypted"
+  global_cluster_name_unencrypted     = "test-global-unencrypted"
+  elasticsearch_domain_encrypted      = "test-es-encrypted"
+  elasticsearch_domain_unencrypted    = "test-es-unencrypted"
+  redis_replication_group_encrypted   = "test-redis-replication-encrypted"
   redis_replication_group_unencrypted = "test-redis-replication-unencrypted"
-  s3_bucket_encrypted   = "test-s3-encrypted"
-  s3_bucket_unencrypted = "test-s3-unencrypted"
+  s3_bucket_encrypted                 = "test-s3-encrypted"
+  s3_bucket_unencrypted               = "test-s3-unencrypted"
+
+  # New locals for tag testing
+  bucket_no_tags     = "test-bucket-no-tags"
+  bucket_lowercase   = "test-bucket-lowercase"
+  bucket_uppercase   = "test-bucket-uppercase"
+  bucket_mixed_case  = "test-bucket-mixed-case"
+  bucket_pascal_case = "test-bucket-pascal-case"
+  bucket_snake_upper = "test-bucket-snake-upper"
+  bucket_kebab_case  = "test-bucket-kebab-case"
 }
 
 provider "aws" {
   region = var.region
 }
+
+/*
+  All resource blocks below have been commented out to focus on tag testing for Sentinel policies.
+  If you need to re-enable any of them, remove the surrounding comment markers.
 
 # Elasticsearch domain with encryption at rest enabled
 resource "aws_elasticsearch_domain" "test-es-encrypted" {
@@ -359,3 +372,80 @@ resource "aws_s3_bucket" "test_bucket_unencrypted" {
     Type = "unencrypted-s3"
   }
 }
+*/
+# End of commented resource blocks
+
+# =============================================================================
+# NEW DUMMY RESOURCES FOR TAG TESTING
+# =============================================================================
+
+# 1. Bucket with NO tags (should fail Sentinel policy)
+resource "aws_s3_bucket" "no_tags" {
+  bucket = local.bucket_no_tags
+}
+
+# # 2. Bucket with all lowercase tags: env, cost-center, hcp_product
+# resource "aws_s3_bucket" "lowercase_tags" {
+#   bucket = local.bucket_lowercase
+
+#   tags = {
+#     env         = "dev"
+#     cost-center = "engineering"
+#     hcp_product = "sentinel"
+#   }
+# }
+
+# # 3. Bucket with all UPPERCASE tags: ENV, COST-CENTER, HCP_PRODUCT
+# resource "aws_s3_bucket" "uppercase_tags" {
+#   bucket = local.bucket_uppercase
+
+#   tags = {
+#     ENV         = "prod"
+#     COST-CENTER = "operations"
+#     HCP_PRODUCT = "terraform"
+#   }
+# }
+
+# # 4. Bucket with mixed case tags: Env, Cost-Center, Hcp_Product
+# resource "aws_s3_bucket" "mixed_case_tags" {
+#   bucket = local.bucket_mixed_case
+
+#   tags = {
+#     Env         = "staging"
+#     Cost-Center = "finance"
+#     Hcp_Product = "vault"
+#   }
+# }
+
+# # 5. Bucket with PascalCase tags: Env, CostCenter, HcpProduct
+# resource "aws_s3_bucket" "pascal_case_tags" {
+#   bucket = local.bucket_pascal_case
+
+#   tags = {
+#     Environment = "test"
+#     CostCenter  = "marketing"
+#     HcpProduct  = "consul"
+#   }
+# }
+
+# # 6. Bucket with SNAKE_UPPER tags: ENV, COST_CENTER, HCP_PRODUCT
+# resource "aws_s3_bucket" "snake_upper_tags" {
+#   bucket = local.bucket_snake_upper
+
+#   tags = {
+#     ENV         = "uat"
+#     COST_CENTER = "sales"
+#     HCP_PRODUCT = "boundary"
+#   }
+# }
+
+# # 7. Bucket with kebab-case tags: env, cost-center, hcp-product
+# resource "aws_s3_bucket" "kebab_case_tags" {
+#   bucket = local.bucket_kebab_case
+
+#   tags = {
+#     env         = "qa"
+#     cost-center = "support"
+#     hcp-product = "waypoint"
+#   }
+# }
