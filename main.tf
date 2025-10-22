@@ -32,6 +32,11 @@ locals {
   bucket_pascal_case = "test-bucket-pascal-case"
   bucket_snake_upper = "test-bucket-snake-upper"
   bucket_kebab_case  = "test-bucket-kebab-case"
+
+  bucket_only_one_tag  = "test-bucket-only-one-tag"
+  bucket_only_two_tags = "test-bucket-only-two-tags"
+  bucket_wrong_tags    = "test-bucket-wrong-tags"
+  bucket_partial_wrong = "test-bucket-partial-wrong"
 }
 
 provider "aws" {
@@ -380,72 +385,112 @@ resource "aws_s3_bucket" "test_bucket_unencrypted" {
 # =============================================================================
 
 # 1. Bucket with NO tags (should fail Sentinel policy)
-# resource "aws_s3_bucket" "no_tags" {
-#   bucket = local.bucket_no_tags
-# }
+resource "aws_s3_bucket" "no_tags" {
+  bucket = local.bucket_no_tags
+}
 
-# 2. Bucket with all lowercase tags: env, cost-center, hcp_product
-resource "aws_s3_bucket" "lowercase_tags" {
-  bucket = local.bucket_lowercase
+resource "aws_s3_bucket" "wrong_tags" {
+  bucket = local.bucket_wrong_tags
+
+  tags = {
+    Name       = "test-bucket"
+    Owner      = "platform-team"
+    Project    = "testing"
+    Department = "engineering"
+  }
+}
+
+resource "aws_s3_bucket" "only_env" {
+  bucket = local.bucket_only_one_tag
+
+  tags = {
+    env = "dev"
+  }
+}
+
+resource "aws_s3_bucket" "env_cost_center" {
+  bucket = local.bucket_only_two_tags
+
+  tags = {
+    env         = "staging"
+    cost-center = "operations"
+  }
+}
+
+resource "aws_s3_bucket" "partial_wrong" {
+  bucket = local.bucket_partial_wrong
 
   tags = {
     env         = "dev"
-    cost-center = "engineering"
-    hcp_product = "sentinel"
+    Owner       = "platform-team"
+    Project     = "testing"
+    Description = "test bucket"
   }
 }
 
-# 3. Bucket with all UPPERCASE tags: ENV, COST-CENTER, HCP_PRODUCT
-resource "aws_s3_bucket" "uppercase_tags" {
-  bucket = local.bucket_uppercase
 
-  tags = {
-    ENV         = "prod"
-    COST-CENTER = "operations"
-    HCP_PRODUCT = "terraform"
-  }
-}
+# # 2. Bucket with all lowercase tags: env, cost-center, hcp_product
+# resource "aws_s3_bucket" "lowercase_tags" {
+#   bucket = local.bucket_lowercase
 
-# 4. Bucket with mixed case tags: Env, Cost-Center, Hcp_Product
-resource "aws_s3_bucket" "mixed_case_tags" {
-  bucket = local.bucket_mixed_case
+#   tags = {
+#     env         = "dev"
+#     cost-center = "engineering"
+#     hcp_product = "sentinel"
+#   }
+# }
 
-  tags = {
-    Env         = "staging"
-    Cost-Center = "finance"
-    Hcp_Product = "vault"
-  }
-}
+# # 3. Bucket with all UPPERCASE tags: ENV, COST-CENTER, HCP_PRODUCT
+# resource "aws_s3_bucket" "uppercase_tags" {
+#   bucket = local.bucket_uppercase
 
-# 5. Bucket with PascalCase tags: Env, CostCenter, HcpProduct
-resource "aws_s3_bucket" "pascal_case_tags" {
-  bucket = local.bucket_pascal_case
+#   tags = {
+#     ENV         = "prod"
+#     COST-CENTER = "operations"
+#     HCP_PRODUCT = "terraform"
+#   }
+# }
 
-  tags = {
-    Environment = "test"
-    CostCenter  = "marketing"
-    HcpProduct  = "consul"
-  }
-}
+# # 4. Bucket with mixed case tags: Env, Cost-Center, Hcp_Product
+# resource "aws_s3_bucket" "mixed_case_tags" {
+#   bucket = local.bucket_mixed_case
 
-# 6. Bucket with SNAKE_UPPER tags: ENV, COST_CENTER, HCP_PRODUCT
-resource "aws_s3_bucket" "snake_upper_tags" {
-  bucket = local.bucket_snake_upper
+#   tags = {
+#     Env         = "staging"
+#     Cost-Center = "finance"
+#     Hcp_Product = "vault"
+#   }
+# }
 
-  tags = {
-    ENV         = "uat"
-    COST_CENTER = "sales"
-    HCP_PRODUCT = "boundary"
-  }
-}
+# # 5. Bucket with PascalCase tags: Env, CostCenter, HcpProduct
+# resource "aws_s3_bucket" "pascal_case_tags" {
+#   bucket = local.bucket_pascal_case
 
-# 7. Bucket with kebab-case tags: env, cost-center, hcp-product
-resource "aws_s3_bucket" "kebab_case_tags" {
-  bucket = local.bucket_kebab_case
+#   tags = {
+#     Environment = "test"
+#     CostCenter  = "marketing"
+#     HcpProduct  = "consul"
+#   }
+# }
 
-  tags = {
-    env         = "qa"
-    cost-center = "support"
-    hcp-product = "waypoint"
-  }
-}
+# # 6. Bucket with SNAKE_UPPER tags: ENV, COST_CENTER, HCP_PRODUCT
+# resource "aws_s3_bucket" "snake_upper_tags" {
+#   bucket = local.bucket_snake_upper
+
+#   tags = {
+#     ENV         = "uat"
+#     COST_CENTER = "sales"
+#     HCP_PRODUCT = "boundary"
+#   }
+# }
+
+# # 7. Bucket with kebab-case tags: env, cost-center, hcp-product
+# resource "aws_s3_bucket" "kebab_case_tags" {
+#   bucket = local.bucket_kebab_case
+
+#   tags = {
+#     env         = "qa"
+#     cost-center = "support"
+#     hcp-product = "waypoint"
+#   }
+# }
