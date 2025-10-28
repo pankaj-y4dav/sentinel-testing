@@ -385,60 +385,60 @@ resource "aws_s3_bucket" "test_bucket_unencrypted" {
 # =============================================================================
 
 # 1. Bucket with NO tags (should fail Sentinel policy)
-resource "aws_s3_bucket" "no_tags" {
-  bucket = local.bucket_no_tags
-}
+# resource "aws_s3_bucket" "no_tags" {
+#   bucket = local.bucket_no_tags
+# }
 
-resource "aws_s3_bucket" "wrong_tags" {
-  bucket = local.bucket_wrong_tags
+# resource "aws_s3_bucket" "wrong_tags" {
+#   bucket = local.bucket_wrong_tags
 
-  tags = {
-    Name       = "test-bucket"
-    Owner      = "platform-team"
-    Project    = "testing"
-    Department = "engineering"
-  }
-}
+#   tags = {
+#     Name       = "test-bucket"
+#     Owner      = "platform-team"
+#     Project    = "testing"
+#     Department = "engineering"
+#   }
+# }
 
-resource "aws_s3_bucket" "only_env" {
-  bucket = local.bucket_only_one_tag
+# resource "aws_s3_bucket" "only_env" {
+#   bucket = local.bucket_only_one_tag
 
-  tags = {
-    env = "dev"
-  }
-}
+#   tags = {
+#     env = "dev"
+#   }
+# }
 
-resource "aws_s3_bucket" "env_cost_center" {
-  bucket = local.bucket_only_two_tags
+# resource "aws_s3_bucket" "env_cost_center" {
+#   bucket = local.bucket_only_two_tags
 
-  tags = {
-    env         = "staging"
-    cost-center = "operations"
-  }
-}
+#   tags = {
+#     env         = "staging"
+#     cost-center = "operations"
+#   }
+# }
 
-resource "aws_s3_bucket" "partial_wrong" {
-  bucket = local.bucket_partial_wrong
-
-  tags = {
-    env         = "dev"
-    Owner       = "platform-team"
-    Project     = "testing"
-    Description = "test bucket"
-  }
-}
-
-
-# # 2. Bucket with all lowercase tags: env, cost-center, hcp_product
-# resource "aws_s3_bucket" "lowercase_tags" {
-#   bucket = local.bucket_lowercase
+# resource "aws_s3_bucket" "partial_wrong" {
+#   bucket = local.bucket_partial_wrong
 
 #   tags = {
 #     env         = "dev"
-#     cost-center = "engineering"
-#     hcp_product = "sentinel"
+#     Owner       = "platform-team"
+#     Project     = "testing"
+#     Description = "test bucket"
 #   }
 # }
+
+
+# 2. Bucket with all lowercase tags: env, cost-center, hcp_product
+resource "aws_s3_bucket" "proper_tags" {
+  bucket = "test-bucket-proper-tags"
+
+  tags = {
+    env         = "dev"
+    cost_center = "engineering"
+    hcp_product = "sentinel"
+  }
+}
 
 # # 3. Bucket with all UPPERCASE tags: ENV, COST-CENTER, HCP_PRODUCT
 # resource "aws_s3_bucket" "uppercase_tags" {
