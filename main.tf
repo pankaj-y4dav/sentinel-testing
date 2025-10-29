@@ -437,6 +437,8 @@ resource "aws_s3_bucket" "proper_tags" {
     env         = "dev"
     cost_center = "engineering"
     hcp_product = "sentinel"
+    github_repo = "greed-island"
+    owner       = "platform-team"
   }
 }
 
