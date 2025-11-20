@@ -430,15 +430,27 @@ resource "aws_s3_bucket" "test_bucket_unencrypted" {
 
 
 # 2. Bucket with all lowercase tags: env, cost-center, hcp_product
-resource "aws_s3_bucket" "proper_tags" {
-  bucket = "test-bucket-proper-tags"
+resource "aws_instance" "test_pass_all_valid" {
+  ami           = var.ami
+  instance_type = var.instance_type
 
   tags = {
-    env         = "dev"
-    cost_center = "engineering"
-    hcp_product = "sentinel"
-    github_repo = "greed-island"
-    owner       = "platform-team"
+    env          = "dev"
+    cost_center  = "engineering_cogs"
+    hcp_product  = "sentinel"
+    github_repo  = "hashicorp/cloud-infra-sentinel-policy"
+    owner        = "team@hashicorp.com"
+  }
+}
+
+resource "aws_sqs_queue" "test_pass_one_missing" {
+  name = "test-queue"
+
+  tags = {
+    cost_center  = "data_opex"
+    hcp_product  = "vault-radar"
+    github_repo  = "hashicorp/vault"
+    owner        = "user.name@example.com"
   }
 }
 
