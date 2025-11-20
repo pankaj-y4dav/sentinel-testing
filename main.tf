@@ -430,29 +430,29 @@ resource "aws_s3_bucket" "test_bucket_unencrypted" {
 
 
 # 2. Bucket with all lowercase tags: env, cost-center, hcp_product
-resource "aws_instance" "test_pass_all_valid" {
-  ami           = var.ami
-  instance_type = var.instance_type
+# resource "aws_instance" "test_pass_all_valid" {
+#   ami           = var.ami
+#   instance_type = var.instance_type
 
-  tags = {
-    env          = "dev"
-    cost_center  = "engineering_cogs"
-    hcp_product  = "sentinel"
-    github_repo  = "hashicorp/cloud-infra-sentinel-policy"
-    owner        = "team@hashicorp.com"
-  }
-}
+#   tags = {
+#     env          = "dev"
+#     cost_center  = "engineering_cogs"
+#     hcp_product  = "sentinel"
+#     github_repo  = "hashicorp/cloud-infra-sentinel-policy"
+#     owner        = "team@hashicorp.com"
+#   }
+# }
 
-resource "aws_sqs_queue" "test_pass_one_missing" {
-  name = "test-queue"
+# resource "aws_sqs_queue" "test_pass_one_missing" {
+#   name = "test-queue"
 
-  tags = {
-    cost_center  = "data_opex"
-    hcp_product  = "vault-radar"
-    github_repo  = "hashicorp/vault"
-    owner        = "user.name@example.com"
-  }
-}
+#   tags = {
+#     cost_center  = "data_opex"
+#     hcp_product  = "vault-radar"
+#     github_repo  = "hashicorp/vault"
+#     owner        = "user.name@example.com"
+#   }
+# }
 
 # # 3. Bucket with all UPPERCASE tags: ENV, COST-CENTER, HCP_PRODUCT
 # resource "aws_s3_bucket" "uppercase_tags" {
@@ -508,3 +508,70 @@ resource "aws_sqs_queue" "test_pass_one_missing" {
 #     hcp-product = "waypoint"
 #   }
 # }
+resource "aws_instance" "test_fail_invalid_env" {
+  ami           = var.ami
+  instance_type = var.instance_type
+
+  tags = {
+    env          = "invalid-env"
+    cost_center  = "engineering_opex"
+    hcp_product  = "vault-radar"
+    github_repo  = "hashicorp/cloud-vault-scanning-infra"
+    owner        = "team@hashicorp.com"
+  }
+}
+
+resource "aws_db_instance" "test_fail_invalid_email" {
+  allocated_storage = 20
+  engine            = "mysql"
+  instance_class    = "db.t3.micro"
+  username          = "admin"
+  password          = "password123"
+
+  tags = {
+    env          = "dev"
+    cost_center  = "platform_opex"
+    hcp_product  = "hcp-vault"
+    github_repo  = "hashicorp/vault"
+    owner        = "not-an-email"
+  }
+}
+
+resource "aws_sqs_queue" "test_fail_invalid_github_repo" {
+  name = "test-queue"
+
+  tags = {
+    env          = "int"
+    cost_center  = "data_opex"
+    hcp_product  = "boundary"
+    github_repo  = "invalid-repo-format"
+    owner        = "user@example.com"
+  }
+}
+
+resource "aws_sns_topic" "test_fail_invalid_cost_center" {
+  name = "test-topic"
+
+  tags = {
+    env          = "prod"
+    cost_center  = "engineering"
+    hcp_product  = "consul"
+    github_repo  = "hashicorp/consul"
+    owner        = "team@hashicorp.com"
+  }
+}
+
+resource "aws_rds_cluster" "test_fail_multiple_invalid" {
+  cluster_identifier = "test-cluster"
+  engine             = "aurora-postgresql"
+  master_username    = "admin"
+  master_password    = "password123"
+
+  tags = {
+    env          = "live"
+    cost_center  = "platform"
+    hcp_product  = "waypoint"
+    github_repo  = "waypoint"
+    owner        = "invalid-email"
+  }
+}
