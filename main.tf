@@ -1,33 +1,51 @@
-terraform { 
-  cloud { 
-    organization = "greed-island" 
+terraform {
+  cloud {
+    organization = "greed-island"
 
-    workspaces { 
-      name = "sentinel-x-sentinel" 
-    } 
-  } 
+    workspaces {
+      name = "sentinel-x-sentinel"
+    }
+  }
 }
 
 locals {
-  instance_name_encrypted = "test-instance-encrypted"
-  instance_name_unencrypted = "test-instance-unencrypted"
-  db_name_encrypted = "test-db-encrypted"
-  db_name_unencrypted = "test-db-unencrypted"
-  cluster_name_encrypted = "test-cluster-encrypted"
-  cluster_name_unencrypted = "test-cluster-unencrypted"
-  global_cluster_name_encrypted = "test-global-encrypted"
-  global_cluster_name_unencrypted = "test-global-unencrypted"
-  elasticsearch_domain_encrypted = "test-es-encrypted"
-  elasticsearch_domain_unencrypted = "test-es-unencrypted"
-  redis_replication_group_encrypted = "test-redis-replication-encrypted"
+  instance_name_encrypted             = "test-instance-encrypted"
+  instance_name_unencrypted           = "test-instance-unencrypted"
+  db_name_encrypted                   = "test-db-encrypted"
+  db_name_unencrypted                 = "test-db-unencrypted"
+  cluster_name_encrypted              = "test-cluster-encrypted"
+  cluster_name_unencrypted            = "test-cluster-unencrypted"
+  global_cluster_name_encrypted       = "test-global-encrypted"
+  global_cluster_name_unencrypted     = "test-global-unencrypted"
+  elasticsearch_domain_encrypted      = "test-es-encrypted"
+  elasticsearch_domain_unencrypted    = "test-es-unencrypted"
+  redis_replication_group_encrypted   = "test-redis-replication-encrypted"
   redis_replication_group_unencrypted = "test-redis-replication-unencrypted"
-  s3_bucket_encrypted   = "test-s3-encrypted"
-  s3_bucket_unencrypted = "test-s3-unencrypted"
+  s3_bucket_encrypted                 = "test-s3-encrypted"
+  s3_bucket_unencrypted               = "test-s3-unencrypted"
+
+  # New locals for tag testing
+  bucket_no_tags     = "test-bucket-no-tags"
+  bucket_lowercase   = "test-bucket-lowercase"
+  bucket_uppercase   = "test-bucket-uppercase"
+  bucket_mixed_case  = "test-bucket-mixed-case"
+  bucket_pascal_case = "test-bucket-pascal-case"
+  bucket_snake_upper = "test-bucket-snake-upper"
+  bucket_kebab_case  = "test-bucket-kebab-case"
+
+  bucket_only_one_tag  = "test-bucket-only-one-tag"
+  bucket_only_two_tags = "test-bucket-only-two-tags"
+  bucket_wrong_tags    = "test-bucket-wrong-tags"
+  bucket_partial_wrong = "test-bucket-partial-wrong"
 }
 
 provider "aws" {
   region = var.region
 }
+
+/*
+  All resource blocks below have been commented out to focus on tag testing for Sentinel policies.
+  If you need to re-enable any of them, remove the surrounding comment markers.
 
 # Elasticsearch domain with encryption at rest enabled
 resource "aws_elasticsearch_domain" "test-es-encrypted" {
@@ -357,5 +375,203 @@ resource "aws_s3_bucket" "test_bucket_unencrypted" {
   tags = {
     Name = local.s3_bucket_unencrypted
     Type = "unencrypted-s3"
+  }
+}
+*/
+# End of commented resource blocks
+
+# =============================================================================
+# NEW DUMMY RESOURCES FOR TAG TESTING
+# =============================================================================
+
+# 1. Bucket with NO tags (should fail Sentinel policy)
+# resource "aws_s3_bucket" "no_tags" {
+#   bucket = local.bucket_no_tags
+# }
+
+# resource "aws_s3_bucket" "wrong_tags" {
+#   bucket = local.bucket_wrong_tags
+
+#   tags = {
+#     Name       = "test-bucket"
+#     Owner      = "platform-team"
+#     Project    = "testing"
+#     Department = "engineering"
+#   }
+# }
+
+# resource "aws_s3_bucket" "only_env" {
+#   bucket = local.bucket_only_one_tag
+
+#   tags = {
+#     env = "dev"
+#   }
+# }
+
+# resource "aws_s3_bucket" "env_cost_center" {
+#   bucket = local.bucket_only_two_tags
+
+#   tags = {
+#     env         = "staging"
+#     cost-center = "operations"
+#   }
+# }
+
+# resource "aws_s3_bucket" "partial_wrong" {
+#   bucket = local.bucket_partial_wrong
+
+#   tags = {
+#     env         = "dev"
+#     Owner       = "platform-team"
+#     Project     = "testing"
+#     Description = "test bucket"
+#   }
+# }
+
+
+# 2. Bucket with all lowercase tags: env, cost-center, hcp_product
+# resource "aws_instance" "test_pass_all_valid" {
+#   ami           = var.ami
+#   instance_type = var.instance_type
+
+#   tags = {
+#     env          = "dev"
+#     cost_center  = "engineering_cogs"
+#     hcp_product  = "sentinel"
+#     github_repo  = "hashicorp/cloud-infra-sentinel-policy"
+#     owner        = "team@hashicorp.com"
+#   }
+# }
+
+# resource "aws_sqs_queue" "test_pass_one_missing" {
+#   name = "test-queue"
+
+#   tags = {
+#     cost_center  = "data_opex"
+#     hcp_product  = "vault-radar"
+#     github_repo  = "hashicorp/vault"
+#     owner        = "user.name@example.com"
+#   }
+# }
+
+# # 3. Bucket with all UPPERCASE tags: ENV, COST-CENTER, HCP_PRODUCT
+# resource "aws_s3_bucket" "uppercase_tags" {
+#   bucket = local.bucket_uppercase
+
+#   tags = {
+#     ENV         = "prod"
+#     COST-CENTER = "operations"
+#     HCP_PRODUCT = "terraform"
+#   }
+# }
+
+# # 4. Bucket with mixed case tags: Env, Cost-Center, Hcp_Product
+# resource "aws_s3_bucket" "mixed_case_tags" {
+#   bucket = local.bucket_mixed_case
+
+#   tags = {
+#     Env         = "staging"
+#     Cost-Center = "finance"
+#     Hcp_Product = "vault"
+#   }
+# }
+
+# # 5. Bucket with PascalCase tags: Env, CostCenter, HcpProduct
+# resource "aws_s3_bucket" "pascal_case_tags" {
+#   bucket = local.bucket_pascal_case
+
+#   tags = {
+#     Environment = "test"
+#     CostCenter  = "marketing"
+#     HcpProduct  = "consul"
+#   }
+# }
+
+# # 6. Bucket with SNAKE_UPPER tags: ENV, COST_CENTER, HCP_PRODUCT
+# resource "aws_s3_bucket" "snake_upper_tags" {
+#   bucket = local.bucket_snake_upper
+
+#   tags = {
+#     ENV         = "uat"
+#     COST_CENTER = "sales"
+#     HCP_PRODUCT = "boundary"
+#   }
+# }
+
+# # 7. Bucket with kebab-case tags: env, cost-center, hcp-product
+# resource "aws_s3_bucket" "kebab_case_tags" {
+#   bucket = local.bucket_kebab_case
+
+#   tags = {
+#     env         = "qa"
+#     cost-center = "support"
+#     hcp-product = "waypoint"
+#   }
+# }
+resource "aws_instance" "test_fail_invalid_env" {
+  ami           = var.ami
+  instance_type = var.instance_type
+
+  tags = {
+    env          = "invalid-env"
+    cost_center  = "engineering_opex"
+    hcp_product  = "vault-radar"
+    github_repo  = "hashicorp/cloud-vault-scanning-infra"
+    owner        = "team@hashicorp.com"
+  }
+}
+
+resource "aws_db_instance" "test_fail_invalid_email" {
+  allocated_storage = 20
+  engine            = "mysql"
+  instance_class    = "db.t3.micro"
+  username          = "admin"
+  password          = "password123"
+
+  tags = {
+    env          = "dev"
+    cost_center  = "platform_opex"
+    hcp_product  = "hcp-vault"
+    github_repo  = "hashicorp/vault"
+    owner        = "not-an-email"
+  }
+}
+
+resource "aws_sqs_queue" "test_fail_invalid_github_repo" {
+  name = "test-queue"
+
+  tags = {
+    env          = "int"
+    cost_center  = "data_opex"
+    hcp_product  = "boundary"
+    github_repo  = "invalid-repo-format"
+    owner        = "user@example.com"
+  }
+}
+
+resource "aws_sns_topic" "test_fail_invalid_cost_center" {
+  name = "test-topic"
+
+  tags = {
+    env          = "prod"
+    cost_center  = "engineering"
+    hcp_product  = "consul"
+    github_repo  = "hashicorp/consul"
+    owner        = "team@hashicorp.com"
+  }
+}
+
+resource "aws_rds_cluster" "test_fail_multiple_invalid" {
+  cluster_identifier = "test-cluster"
+  engine             = "aurora-postgresql"
+  master_username    = "admin"
+  master_password    = "password123"
+
+  tags = {
+    env          = "live"
+    cost_center  = "platform"
+    hcp_product  = "waypoint"
+    github_repo  = "waypoint"
+    owner        = "invalid-email"
   }
 }
