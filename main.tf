@@ -73,46 +73,46 @@ resource "aws_subnet" "test_subnet_2" {
 }
 
 # FAIL: External ALB without security_waf_acl tag
-resource "aws_lb" "external_alb_no_waf" {
-  name               = local.alb_external_no_waf
-  internal           = false
-  load_balancer_type = "application"
-  subnets            = [aws_subnet.test_subnet_1.id, aws_subnet.test_subnet_2.id]
-
-  tags = {
-    Name        = local.alb_external_no_waf
-    Environment = "test"
-    # Missing security_waf_acl tag - SHOULD FAIL
-  }
-}
-
-# PASS: External ALB with security_waf_acl tag
-# resource "aws_lb" "external_alb_with_waf" {
-#   name               = local.alb_external_with_waf
+# resource "aws_lb" "external_alb_no_waf" {
+#   name               = local.alb_external_no_waf
 #   internal           = false
 #   load_balancer_type = "application"
 #   subnets            = [aws_subnet.test_subnet_1.id, aws_subnet.test_subnet_2.id]
 
 #   tags = {
-#     Name             = local.alb_external_with_waf
-#     Environment      = "test"
-#     security_waf_acl = "test-waf-acl-arn"
+#     Name        = local.alb_external_no_waf
+#     Environment = "test"
+#     # Missing security_waf_acl tag - SHOULD FAIL
 #   }
 # }
+
+# PASS: External ALB with security_waf_acl tag
+resource "aws_lb" "external_alb_with_waf" {
+  name               = local.alb_external_with_waf
+  internal           = false
+  load_balancer_type = "application"
+  subnets            = [aws_subnet.test_subnet_1.id, aws_subnet.test_subnet_2.id]
+
+  tags = {
+    Name             = local.alb_external_with_waf
+    Environment      = "test"
+    security_waf_acl = "test-waf-acl-arn"
+  }
+}
 
 # PASS: Internal ALB without security_waf_acl tag (internal ALBs don't require WAF)
-# resource "aws_lb" "internal_alb" {
-#   name               = local.alb_internal
-#   internal           = true
-#   load_balancer_type = "application"
-#   subnets            = [aws_subnet.test_subnet_1.id, aws_subnet.test_subnet_2.id]
+resource "aws_lb" "internal_alb" {
+  name               = local.alb_internal
+  internal           = true
+  load_balancer_type = "application"
+  subnets            = [aws_subnet.test_subnet_1.id, aws_subnet.test_subnet_2.id]
 
-#   tags = {
-#     Name        = local.alb_internal
-#     Environment = "test"
-#     # No security_waf_acl tag but internal - SHOULD PASS
-#   }
-# }
+  tags = {
+    Name        = local.alb_internal
+    Environment = "test"
+    # No security_waf_acl tag but internal - SHOULD PASS
+  }
+}
 
 # S3 bucket for CloudFront origin
 resource "aws_s3_bucket" "cf_origin" {
@@ -124,9 +124,50 @@ resource "aws_s3_bucket" "cf_origin" {
 }
 
 # FAIL: Enabled CloudFront distribution without security_waf_acl tag
-resource "aws_cloudfront_distribution" "enabled_cf_no_waf" {
+# resource "aws_cloudfront_distribution" "enabled_cf_no_waf" {
+#   enabled = true
+#   comment = "CloudFront distribution enabled without WAF tag"
+
+#   origin {
+#     domain_name = aws_s3_bucket.cf_origin.bucket_regional_domain_name
+#     origin_id   = "S3-${aws_s3_bucket.cf_origin.id}"
+#   }
+
+#   default_cache_behavior {
+#     allowed_methods        = ["GET", "HEAD"]
+#     cached_methods         = ["GET", "HEAD"]
+#     target_origin_id       = "S3-${aws_s3_bucket.cf_origin.id}"
+#     viewer_protocol_policy = "redirect-to-https"
+
+#     forwarded_values {
+#       query_string = false
+#       cookies {
+#         forward = "none"
+#       }
+#     }
+#   }
+
+#   viewer_certificate {
+#     cloudfront_default_certificate = true
+#   }
+
+#   restrictions {
+#     geo_restriction {
+#       restriction_type = "none"
+#     }
+#   }
+
+#   tags = {
+#     Name        = local.cf_enabled_no_waf
+#     Environment = "test"
+#     # Missing security_waf_acl tag and enabled - SHOULD FAIL
+#   }
+# }
+
+# PASS: Enabled CloudFront distribution with security_waf_acl tag
+resource "aws_cloudfront_distribution" "enabled_cf_with_waf" {
   enabled = true
-  comment = "CloudFront distribution enabled without WAF tag"
+  comment = "CloudFront distribution enabled with WAF tag"
 
   origin {
     domain_name = aws_s3_bucket.cf_origin.bucket_regional_domain_name
@@ -158,93 +199,52 @@ resource "aws_cloudfront_distribution" "enabled_cf_no_waf" {
   }
 
   tags = {
-    Name        = local.cf_enabled_no_waf
-    Environment = "test"
-    # Missing security_waf_acl tag and enabled - SHOULD FAIL
+    Name             = local.cf_enabled_with_waf
+    Environment      = "test"
+    security_waf_acl = "test-waf-acl-arn"
   }
 }
 
-# PASS: Enabled CloudFront distribution with security_waf_acl tag
-# resource "aws_cloudfront_distribution" "enabled_cf_with_waf" {
-#   enabled = true
-#   comment = "CloudFront distribution enabled with WAF tag"
-
-#   origin {
-#     domain_name = aws_s3_bucket.cf_origin.bucket_regional_domain_name
-#     origin_id   = "S3-${aws_s3_bucket.cf_origin.id}"
-#   }
-
-#   default_cache_behavior {
-#     allowed_methods        = ["GET", "HEAD"]
-#     cached_methods         = ["GET", "HEAD"]
-#     target_origin_id       = "S3-${aws_s3_bucket.cf_origin.id}"
-#     viewer_protocol_policy = "redirect-to-https"
-
-#     forwarded_values {
-#       query_string = false
-#       cookies {
-#         forward = "none"
-#       }
-#     }
-#   }
-
-#   viewer_certificate {
-#     cloudfront_default_certificate = true
-#   }
-
-#   restrictions {
-#     geo_restriction {
-#       restriction_type = "none"
-#     }
-#   }
-
-#   tags = {
-#     Name             = local.cf_enabled_with_waf
-#     Environment      = "test"
-#     security_waf_acl = "test-waf-acl-arn"
-#   }
-# }
-
 # PASS: Disabled CloudFront distribution without security_waf_acl tag (disabled distributions don't require WAF)
-# resource "aws_cloudfront_distribution" "disabled_cf" {
-#   enabled = false
-#   comment = "CloudFront distribution disabled without WAF tag"
+resource "aws_cloudfront_distribution" "disabled_cf" {
+  enabled = false
+  comment = "CloudFront distribution disabled without WAF tag"
 
-#   origin {
-#     domain_name = aws_s3_bucket.cf_origin.bucket_regional_domain_name
-#     origin_id   = "S3-${aws_s3_bucket.cf_origin.id}"
-#   }
+  origin {
+    domain_name = aws_s3_bucket.cf_origin.bucket_regional_domain_name
+    origin_id   = "S3-${aws_s3_bucket.cf_origin.id}"
+  }
 
-#   default_cache_behavior {
-#     allowed_methods        = ["GET", "HEAD"]
-#     cached_methods         = ["GET", "HEAD"]
-#     target_origin_id       = "S3-${aws_s3_bucket.cf_origin.id}"
-#     viewer_protocol_policy = "redirect-to-https"
+  default_cache_behavior {
+    allowed_methods        = ["GET", "HEAD"]
+    cached_methods         = ["GET", "HEAD"]
+    target_origin_id       = "S3-${aws_s3_bucket.cf_origin.id}"
+    viewer_protocol_policy = "redirect-to-https"
 
-#     forwarded_values {
-#       query_string = false
-#       cookies {
-#         forward = "none"
-#       }
-#     }
-#   }
+    forwarded_values {
+      query_string = false
+      cookies {
+        forward = "none"
+      }
+    }
+  }
 
-#   viewer_certificate {
-#     cloudfront_default_certificate = true
-#   }
+  viewer_certificate {
+    cloudfront_default_certificate = true
+  }
 
-#   restrictions {
-#     geo_restriction {
-#       restriction_type = "none"
-#     }
-#   }
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
 
-#   tags = {
-#     Name        = local.cf_disabled
-#     Environment = "test"
-#     # No security_waf_acl tag but disabled - SHOULD PASS
-#   }
-# }
+  tags = {
+    Name        = local.cf_disabled
+    Environment = "test"
+    # No security_waf_acl tag but disabled - SHOULD PASS
+  }
+}
 
 # =============================================================================
 # COMMENTED OUT - Previous encryption test resources
