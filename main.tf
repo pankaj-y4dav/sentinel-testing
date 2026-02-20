@@ -8,354 +8,343 @@ terraform {
   } 
 }
 
-locals {
-  instance_name_encrypted = "test-instance-encrypted"
-  instance_name_unencrypted = "test-instance-unencrypted"
-  db_name_encrypted = "test-db-encrypted"
-  db_name_unencrypted = "test-db-unencrypted"
-  cluster_name_encrypted = "test-cluster-encrypted"
-  cluster_name_unencrypted = "test-cluster-unencrypted"
-  global_cluster_name_encrypted = "test-global-encrypted"
-  global_cluster_name_unencrypted = "test-global-unencrypted"
-  elasticsearch_domain_encrypted = "test-es-encrypted"
-  elasticsearch_domain_unencrypted = "test-es-unencrypted"
-  redis_replication_group_encrypted = "test-redis-replication-encrypted"
-  redis_replication_group_unencrypted = "test-redis-replication-unencrypted"
-  s3_bucket_encrypted   = "test-s3-encrypted"
-  s3_bucket_unencrypted = "test-s3-unencrypted"
-}
-
 provider "aws" {
   region = var.region
 }
 
-# Elasticsearch domain with encryption at rest enabled
-resource "aws_elasticsearch_domain" "test-es-encrypted" {
-  domain_name           = local.elasticsearch_domain_encrypted
-  elasticsearch_version = "7.10"
+# ===============================================================================
+# Lambda IAM Role - Required for all Lambda functions
+# ===============================================================================
 
-  cluster_config {
-    instance_type = "t3.small.elasticsearch"
-    instance_count = 1
-  }
+resource "aws_iam_role" "lambda_role" {
+  name = "lambda-runtime-test-role"
+  
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+      }
+    ]
+  })
 
-  ebs_options {
-    ebs_enabled = true
-    volume_size = 10
-  }
-
-  encrypt_at_rest {
-    enabled = true
-  }
-
-  tags = {
-    Name = local.elasticsearch_domain_encrypted
-    Type = "encrypted-elasticsearch"
-  }
 }
 
-# Elasticsearch domain with encryption at rest disabled
-resource "aws_elasticsearch_domain" "test-es-unencrypted" {
-  domain_name           = local.elasticsearch_domain_unencrypted
-  elasticsearch_version = "7.10"
-
-  cluster_config {
-    instance_type = "t3.small.elasticsearch"
-    instance_count = 1
-  }
-
-  ebs_options {
-    ebs_enabled = true
-    volume_size = 10
-  }
-
-  encrypt_at_rest {
-    enabled = false
-  }
-
-  tags = {
-    Name = local.elasticsearch_domain_unencrypted
-    Type = "unencrypted-elasticsearch"
-  }
+resource "aws_iam_role_policy_attachment" "lambda_basic" {
+  role       = aws_iam_role.lambda_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
-# EC2 Instance with encrypted root EBS volume
-resource "aws_instance" "test-server-encrypted" {
-  ami           = var.ami
-  instance_type = var.instance_type
+# ===============================================================================
+# PASS TEST - Current Supported Runtimes (KEEP ACTIVE FOR ALL TESTS)
+# ===============================================================================
+# These functions use current, supported runtimes and should remain active
+# They will be part of PASS, FAIL, and WARNING test mocks
 
-  root_block_device {
-    volume_type = "gp3"
-    volume_size = 20
-    encrypted   = true
-    delete_on_termination = true
-  }
-
-  tags = {
-    Name = local.instance_name_encrypted
-    Type = "encrypted-root-volume"
-  }
+resource "aws_lambda_function" "python_current" {
+  function_name = "test-python-current"
+  runtime       = "python3.13"
+  handler       = "index.handler"
+  role          = aws_iam_role.lambda_role.arn
+  filename      = "${path.module}/lambda-placeholder.zip"
+  
 }
 
-# EC2 Instance with unencrypted root EBS volume
-resource "aws_instance" "test-server-unencrypted" {
-  ami           = var.ami
-  instance_type = var.instance_type
-
-  root_block_device {
-    volume_type = "gp3"
-    volume_size = 20
-    encrypted   = false
-    delete_on_termination = true
-  }
-
-  tags = {
-    Name = local.instance_name_unencrypted
-    Type = "unencrypted-root-volume"
-  }
+resource "aws_lambda_function" "nodejs_current" {
+  function_name = "test-nodejs-current"
+  runtime       = "nodejs22.x"
+  handler       = "index.handler"
+  role          = aws_iam_role.lambda_role.arn
+  filename      = "${path.module}/lambda-placeholder.zip"
+  
 }
 
-# =============================================================================
-# RDS INSTANCES (Single instances)
-# =============================================================================
-
-# RDS Instance with encrypted storage
-resource "aws_db_instance" "test-db-encrypted" {
-  identifier = local.db_name_encrypted
+resource "aws_lambda_function" "java_current" {
+  function_name = "test-java-current"
+  runtime       = "java21"
+  handler       = "com.example.Handler"
+  role          = aws_iam_role.lambda_role.arn
+  filename      = "${path.module}/lambda-placeholder.zip"
   
-  engine         = var.db_engine
-  engine_version = var.db_engine_version
-  instance_class = var.db_instance_class
-  
-  allocated_storage = var.db_allocated_storage
-  storage_type      = "gp3"
-  storage_encrypted = true
-  
-  db_name  = var.db_name
-  username = var.db_username
-  password = var.db_password
-  
-  skip_final_snapshot = true
-  deletion_protection = false
-  
-  tags = {
-    Name = local.db_name_encrypted
-    Type = "encrypted-storage"
-  }
 }
 
-# RDS Instance with unencrypted storage
-resource "aws_db_instance" "test-db-unencrypted" {
-  identifier = local.db_name_unencrypted
+resource "aws_lambda_function" "dotnet_current" {
+  function_name = "test-dotnet-current"
+  runtime       = "dotnet8"
+  handler       = "Handler::FunctionHandler"
+  role          = aws_iam_role.lambda_role.arn
+  filename      = "${path.module}/lambda-placeholder.zip"
   
-  engine         = var.db_engine
-  engine_version = var.db_engine_version
-  instance_class = var.db_instance_class
-  
-  allocated_storage = var.db_allocated_storage
-  storage_type      = "gp3"
-  storage_encrypted = false
-  
-  db_name  = var.db_name
-  username = var.db_username
-  password = var.db_password
-  
-  skip_final_snapshot = true
-  deletion_protection = false
-  
-  tags = {
-    Name = local.db_name_unencrypted
-    Type = "unencrypted-storage"
-  }
 }
 
-# =============================================================================
-# RDS CLUSTERS (Aurora clusters)
-# =============================================================================
-
-# RDS Cluster with encrypted storage
-resource "aws_rds_cluster" "test-cluster-encrypted" {
-  cluster_identifier = local.cluster_name_encrypted
+resource "aws_lambda_function" "ruby_current" {
+  function_name = "test-ruby-current"
+  runtime       = "ruby3.3"
+  handler       = "handler.process"
+  role          = aws_iam_role.lambda_role.arn
+  filename      = "${path.module}/lambda-placeholder.zip"
   
-  engine         = var.cluster_engine
-  engine_version = var.cluster_engine_version
-  
-  database_name   = var.db_name
-  master_username = var.db_username
-  master_password = var.db_password
-  
-  storage_encrypted = true
-  kms_key_id       = var.kms_key_id
-  
-  skip_final_snapshot = true
-  deletion_protection = false
-  
-  tags = {
-    Name = local.cluster_name_encrypted
-    Type = "encrypted-cluster"
-  }
 }
 
-# RDS Cluster with unencrypted storage
-resource "aws_rds_cluster" "test-cluster-unencrypted" {
-  cluster_identifier = local.cluster_name_unencrypted
-  
-  engine         = var.cluster_engine
-  engine_version = var.cluster_engine_version
-  
-  database_name   = var.db_name
-  master_username = var.db_username
-  master_password = var.db_password
-  
-  storage_encrypted = false
-  
-  skip_final_snapshot = true
-  deletion_protection = false
-  
-  tags = {
-    Name = local.cluster_name_unencrypted
-    Type = "unencrypted-cluster"
-  }
-}
+# ===============================================================================
+# FAIL TEST - Deprecated Runtimes (UNCOMMENT FOR FAIL TEST ONLY)
+# ===============================================================================
+# Uncomment all resources below to generate FAIL test mock
+# These runtimes are fully deprecated and should cause policy failures
 
-# =============================================================================
-# RDS CLUSTER INSTANCES (Aurora cluster members)
-# =============================================================================
+# Node.js deprecated versions
+# resource "aws_lambda_function" "nodejs" {
+#   function_name = "test-nodejs"
+#   runtime       = "nodejs"
+#   handler       = "index.handler"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
 
-# RDS Cluster Instance for encrypted cluster
-resource "aws_rds_cluster_instance" "test-cluster-instance-encrypted" {
-  identifier         = "${local.cluster_name_encrypted}-instance-1"
-  cluster_identifier = aws_rds_cluster.test-cluster-encrypted.cluster_identifier
-  
-  instance_class = var.cluster_instance_class
-  engine         = aws_rds_cluster.test-cluster-encrypted.engine
-  engine_version = aws_rds_cluster.test-cluster-encrypted.engine_version
-  
-  tags = {
-    Name = "${local.cluster_name_encrypted}-instance-1"
-    Type = "encrypted-cluster-instance"
-  }
-}
+# resource "aws_lambda_function" "nodejs43" {
+#   function_name = "test-nodejs43"
+#   runtime       = "nodejs4.3"
+#   handler       = "index.handler"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
 
-# RDS Cluster Instance for unencrypted cluster
-resource "aws_rds_cluster_instance" "test-cluster-instance-unencrypted" {
-  identifier         = "${local.cluster_name_unencrypted}-instance-1"
-  cluster_identifier = aws_rds_cluster.test-cluster-unencrypted.cluster_identifier
+# resource "aws_lambda_function" "nodejs43_edge" {
+#   function_name = "test-nodejs43-edge"
+#   runtime       = "nodejs4.3-edge"
+#   handler       = "index.handler"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
 
-  instance_class = var.cluster_instance_class
-  engine         = aws_rds_cluster.test-cluster-unencrypted.engine
-  engine_version = aws_rds_cluster.test-cluster-unencrypted.engine_version
-  
-  tags = {
-    Name = "${local.cluster_name_unencrypted}-instance-1"
-    Type = "unencrypted-cluster-instance"
-  }
-}
+# resource "aws_lambda_function" "nodejs610" {
+#   function_name = "test-nodejs610"
+#   runtime       = "nodejs6.10"
+#   handler       = "index.handler"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
 
-# =============================================================================
-# RDS GLOBAL CLUSTERS (Multi-region Aurora)
-# =============================================================================
+# resource "aws_lambda_function" "nodejs810" {
+#   function_name = "test-nodejs810"
+#   runtime       = "nodejs8.10"
+#   handler       = "index.handler"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
 
-# RDS Global Cluster with encrypted storage
-resource "aws_rds_global_cluster" "test-global-cluster-encrypted" {
-  global_cluster_identifier = local.global_cluster_name_encrypted
-  
-  engine         = var.cluster_engine
-  engine_version = var.cluster_engine_version
-  
-  storage_encrypted = true
-  
-  tags = {
-    Name = local.global_cluster_name_encrypted
-    Type = "encrypted-global-cluster"
-  }
-}
+# resource "aws_lambda_function" "nodejs10x" {
+#   function_name = "test-nodejs10x"
+#   runtime       = "nodejs10.x"
+#   handler       = "index.handler"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
 
-# RDS Global Cluster with unencrypted storage
-resource "aws_rds_global_cluster" "test-global-cluster-unencrypted" {
-  global_cluster_identifier = local.global_cluster_name_unencrypted
-  
-  engine         = var.cluster_engine
-  engine_version = var.cluster_engine_version
-  
-  storage_encrypted = false
-  
-  tags = {
-    Name = local.global_cluster_name_unencrypted
-    Type = "unencrypted-global-cluster"
-  }
-}
+# resource "aws_lambda_function" "nodejs12x" {
+#   function_name = "test-nodejs12x"
+#   runtime       = "nodejs12.x"
+#   handler       = "index.handler"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
 
-# ElastiCache Redis replication group with encryption at rest enabled
-resource "aws_elasticache_replication_group" "redis_rep_encrypted" {
-  replication_group_id       = local.redis_replication_group_encrypted
-  description                = "Redis replication group with encryption at rest enabled"
-  engine                     = "redis"
-  engine_version             = "6.2"
-  node_type                  = "cache.t3.micro"
-  num_cache_clusters         = 2
-  parameter_group_name       = "default.redis6.x"
-  port                       = 6379
-  automatic_failover_enabled = true
+# resource "aws_lambda_function" "nodejs14x" {
+#   function_name = "test-nodejs14x"
+#   runtime       = "nodejs14.x"
+#   handler       = "index.handler"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
 
-  # Enable encryption at rest
-  at_rest_encryption_enabled = true
-  # Optionally specify a KMS key: kms_key_id = var.redis_kms_key_id
+# resource "aws_lambda_function" "nodejs16x" {
+#   function_name = "test-nodejs16x"
+#   runtime       = "nodejs16.x"
+#   handler       = "index.handler"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
 
-  tags = {
-    Name = local.redis_replication_group_encrypted
-    Type = "encrypted-redis-replication-group"
-  }
-}
+# resource "aws_lambda_function" "nodejs18x" {
+#   function_name = "test-nodejs18x"
+#   runtime       = "nodejs18.x"
+#   handler       = "index.handler"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
 
-# ElastiCache Redis replication group with encryption at rest disabled
-resource "aws_elasticache_replication_group" "redis_rep_unencrypted" {
-  replication_group_id       = local.redis_replication_group_unencrypted
-  description                = "Redis replication group with encryption at rest disabled"
-  engine                     = "redis"
-  engine_version             = "6.2"
-  node_type                  = "cache.t3.micro"
-  num_cache_clusters         = 2
-  parameter_group_name       = "default.redis6.x"
-  port                       = 6379
-  automatic_failover_enabled = true
+# Python deprecated versions
+# resource "aws_lambda_function" "python27" {
+#   function_name = "test-python27"
+#   runtime       = "python2.7"
+#   handler       = "index.handler"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
 
-  # Disable encryption at rest (explicit)
-  at_rest_encryption_enabled = false
+# resource "aws_lambda_function" "python36" {
+#   function_name = "test-python36"
+#   runtime       = "python3.6"
+#   handler       = "index.handler"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
 
-  tags = {
-    Name = local.redis_replication_group_unencrypted
-    Type = "unencrypted-redis-replication-group"
-  }
-}
+# resource "aws_lambda_function" "python37" {
+#   function_name = "test-python37"
+#   runtime       = "python3.7"
+#   handler       = "index.handler"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
 
-# Encrypted bucket - bucket only (encryption managed via dedicated resource)
-resource "aws_s3_bucket" "test_bucket_encrypted" {
-  bucket = local.s3_bucket_encrypted
+# resource "aws_lambda_function" "python38" {
+#   function_name = "test-python38"
+#   runtime       = "python3.8"
+#   handler       = "index.handler"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
 
-  tags = {
-    Name = local.s3_bucket_encrypted
-    Type = "encrypted-s3"
-  }
-}
+# resource "aws_lambda_function" "python39" {
+#   function_name = "test-python39"
+#   runtime       = "python3.9"
+#   handler       = "index.handler"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
 
-# Server-side encryption configuration as a separate resource (preferred)
-resource "aws_s3_bucket_server_side_encryption_configuration" "test_bucket_encrypted" {
-  bucket = local.s3_bucket_encrypted
+# .NET deprecated versions
+# resource "aws_lambda_function" "dotnetcore10" {
+#   function_name = "test-dotnetcore10"
+#   runtime       = "dotnetcore1.0"
+#   handler       = "Handler::FunctionHandler"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
 
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
-    }
-  }
-}
+# resource "aws_lambda_function" "dotnetcore20" {
+#   function_name = "test-dotnetcore20"
+#   runtime       = "dotnetcore2.0"
+#   handler       = "Handler::FunctionHandler"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
 
-# Unencrypted bucket - intentionally missing server_side_encryption_configuration
-resource "aws_s3_bucket" "test_bucket_unencrypted" {
-  bucket = local.s3_bucket_unencrypted
+# resource "aws_lambda_function" "dotnetcore21" {
+#   function_name = "test-dotnetcore21"
+#   runtime       = "dotnetcore2.1"
+#   handler       = "Handler::FunctionHandler"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
 
-  tags = {
-    Name = local.s3_bucket_unencrypted
-    Type = "unencrypted-s3"
-  }
-}
+# resource "aws_lambda_function" "dotnetcore31" {
+#   function_name = "test-dotnetcore31"
+#   runtime       = "dotnetcore3.1"
+#   handler       = "Handler::FunctionHandler"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
+
+# resource "aws_lambda_function" "dotnet50" {
+#   function_name = "test-dotnet50"
+#   runtime       = "dotnet5.0"
+#   handler       = "Handler::FunctionHandler"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
+
+# resource "aws_lambda_function" "dotnet6" {
+#   function_name = "test-dotnet6"
+#   runtime       = "dotnet6"
+#   handler       = "Handler::FunctionHandler"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
+
+# resource "aws_lambda_function" "dotnet7" {
+#   function_name = "test-dotnet7"
+#   runtime       = "dotnet7"
+#   handler       = "Handler::FunctionHandler"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
+
+# Ruby deprecated versions
+# resource "aws_lambda_function" "ruby25" {
+#   function_name = "test-ruby25"
+#   runtime       = "ruby2.5"
+#   handler       = "handler.process"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
+
+# resource "aws_lambda_function" "ruby27" {
+#   function_name = "test-ruby27"
+#   runtime       = "ruby2.7"
+#   handler       = "handler.process"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
+
+# Java deprecated version
+# resource "aws_lambda_function" "java8" {
+#   function_name = "test-java8"
+#   runtime       = "java8"
+#   handler       = "com.example.Handler"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
+
+# Go deprecated version
+# resource "aws_lambda_function" "go1x" {
+#   function_name = "test-go1x"
+#   runtime       = "go1.x"
+#   handler       = "main"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
+
+# Custom runtime deprecated version
+# resource "aws_lambda_function" "provided" {
+#   function_name = "test-provided"
+#   runtime       = "provided"
+#   handler       = "bootstrap"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
+
+# ===============================================================================
+# WARNING TEST - Soon-to-be Deprecated Runtimes (UNCOMMENT FOR WARNING TEST ONLY)
+# ===============================================================================
+# Uncomment all resources below to generate WARNING test mock
+# These runtimes will be deprecated soon and should generate warnings (but pass)
+
+# resource "aws_lambda_function" "ruby32" {
+#   function_name = "test-ruby32"
+#   runtime       = "ruby3.2"
+#   handler       = "handler.process"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
+
+# resource "aws_lambda_function" "nodejs20x" {
+#   function_name = "test-nodejs20x"
+#   runtime       = "nodejs20.x"
+#   handler       = "index.handler"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
+
+# resource "aws_lambda_function" "provided_al2" {
+#   function_name = "test-provided-al2"
+#   runtime       = "provided.al2"
+#   handler       = "bootstrap"
+#   role          = aws_iam_role.lambda_role.arn
+#   filename      = "${path.module}/lambda-placeholder.zip"
+# }
