@@ -251,25 +251,9 @@ resource "aws_lambda_function" "dotnetcore31" {
   filename      = "${path.module}/lambda-placeholder.zip"
 }
 
-resource "aws_lambda_function" "dotnet50" {
-  function_name = "test-dotnet50"
-  runtime       = "dotnet5.0"
-  handler       = "Handler::FunctionHandler"
-  role          = aws_iam_role.lambda_role.arn
-  filename      = "${path.module}/lambda-placeholder.zip"
-}
-
 resource "aws_lambda_function" "dotnet6" {
   function_name = "test-dotnet6"
   runtime       = "dotnet6"
-  handler       = "Handler::FunctionHandler"
-  role          = aws_iam_role.lambda_role.arn
-  filename      = "${path.module}/lambda-placeholder.zip"
-}
-
-resource "aws_lambda_function" "dotnet7" {
-  function_name = "test-dotnet7"
-  runtime       = "dotnet7"
   handler       = "Handler::FunctionHandler"
   role          = aws_iam_role.lambda_role.arn
   filename      = "${path.module}/lambda-placeholder.zip"
