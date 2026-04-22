@@ -19,9 +19,6 @@ terraform {
     github = {
       source = "integrations/github"
     }
-    incident-io = {
-      source = "incident-io/incident-io"
-    }
     grafana = {
       source = "grafana/grafana"
     }
